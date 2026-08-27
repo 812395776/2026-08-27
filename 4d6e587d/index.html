@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>妙名阁 · 宝宝起名</title>
+<style>
+  :root {
+    --paper: #f7f2e9;
+    --card: #fffdf8;
+    --ink: #2d2a26;
+    --ink-soft: #6f6a61;
+    --cinnabar: #b8432f;
+    --cinnabar-dark: #9a3524;
+    --gold: #b98a2f;
+    --line: #e6ddcd;
+    --shadow: 0 6px 24px rgba(80, 60, 30, .08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background:
+      radial-gradient(circle at 15% 10%, rgba(184, 67, 47, .05), transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(185, 138, 47, .06), transparent 40%),
+      var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+  header { position: relative; text-align: center; padding: 48px 16px 8px; }
+  .seal {
+    display: inline-block; font-family: "Songti SC", "STSong", serif;
+    font-size: 14px; color: #fff; background: var(--cinnabar);
+    padding: 6px 10px; border-radius: 6px; letter-spacing: 4px; margin-bottom: 14px;
+  }
+  header h1 {
+    font-family: "Songti SC", "STSong", "SimSun", serif;
+    font-size: 40px; letter-spacing: 12px; text-indent: 12px; font-weight: 700;
+  }
+  header p { color: var(--ink-soft); margin-top: 10px; letter-spacing: 2px; }
+  main { max-width: 960px; margin: 0 auto; padding: 24px 16px 64px; }
+  .panel {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 14px; box-shadow: var(--shadow); padding: 28px; margin-bottom: 24px;
+  }
+  .panel h2 {
+    font-family: "Songti SC", "STSong", serif; font-size: 20px;
+    display: flex; align-items: center; gap: 10px; margin-bottom: 20px;
+  }
+  .panel h2::before { content: ""; width: 6px; height: 20px; background: var(--cinnabar); border-radius: 3px; }
+  .panel h2 .hint { font-size: 13px; color: var(--ink-soft); font-family: inherit; font-weight: 400; margin-left: auto; }
+
+  .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px 28px; }
+  .field { display: flex; flex-direction: column; gap: 10px; }
+  .field.full { grid-column: 1 / -1; }
+  .field > label { font-size: 14px; color: var(--ink-soft); letter-spacing: 1px; }
+  input[type="text"], select {
+    border: 1px solid var(--line); border-radius: 8px; background: #fff;
+    padding: 11px 14px; font-size: 16px; color: var(--ink); outline: none;
+    transition: border-color .2s, box-shadow .2s; font-family: inherit;
+  }
+  input[type="text"]:focus, select:focus { border-color: var(--cinnabar); box-shadow: 0 0 0 3px rgba(184,67,47,.1); }
+  input.error { border-color: var(--cinnabar); animation: shake .3s; }
+  @keyframes shake { 25% { transform: translateX(-4px);} 75% { transform: translateX(4px);} }
+
+  .seg { display: flex; gap: 8px; flex-wrap: wrap; }
+  .seg input { display: none; }
+  .seg span {
+    display: inline-block; padding: 8px 18px; border-radius: 999px;
+    border: 1px solid var(--line); background: #fff; font-size: 14px;
+    cursor: pointer; user-select: none; transition: all .15s; color: var(--ink);
+  }
+  .seg span:hover { border-color: var(--gold); }
+  .seg input:checked + span { background: var(--cinnabar); border-color: var(--cinnabar); color: #fff; }
+
+  .actions { display: flex; align-items: center; gap: 14px; margin-top: 26px; flex-wrap: wrap; }
+  .btn {
+    border: none; border-radius: 10px; padding: 13px 34px; font-size: 16px;
+    cursor: pointer; letter-spacing: 4px; transition: all .15s; font-family: inherit;
+  }
+  .btn-primary { background: var(--cinnabar); color: #fff; box-shadow: 0 4px 14px rgba(184,67,47,.3); }
+  .btn-primary:hover { background: var(--cinnabar-dark); }
+  .btn-primary:active { transform: scale(.97); }
+  .btn-ghost { background: transparent; color: var(--ink-soft); border: 1px solid var(--line); padding: 12px 22px; letter-spacing: 2px; }
+  .btn-ghost:hover { border-color: var(--gold); color: var(--ink); }
+  #errTip { color: var(--cinnabar); font-size: 14px; min-height: 20px; }
+
+  #resultsPanel[hidden] { display: none; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: 16px; }
+  .card {
+    background: #fff; border: 1px solid var(--line); border-radius: 12px;
+    padding: 20px 18px 16px; display: flex; flex-direction: column; gap: 10px;
+    animation: fadeUp .45s ease both; position: relative; transition: transform .15s, box-shadow .15s;
+  }
+  .card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(14px);} to { opacity: 1; transform: none;} }
+  .card .name {
+    font-family: "Songti SC", "STSong", serif; font-size: 30px; letter-spacing: 6px;
+    text-indent: 6px; text-align: center; font-weight: 700;
+  }
+  .card .pinyin { text-align: center; color: var(--gold); font-size: 13px; letter-spacing: 2px; min-height: 18px; }
+  .card .meaning { font-size: 13px; color: var(--ink-soft); line-height: 1.7; flex: 1; }
+  .card .meaning b { color: var(--cinnabar); font-weight: 600; }
+  .card .tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tag { font-size: 11px; background: rgba(185,138,47,.12); color: #8a6a26; padding: 3px 8px; border-radius: 999px; }
+  .card-ops { display: flex; gap: 8px; border-top: 1px dashed var(--line); padding-top: 12px; }
+  .card-ops button {
+    flex: 1; border: 1px solid var(--line); background: #fff; border-radius: 8px;
+    padding: 7px 0; font-size: 13px; cursor: pointer; color: var(--ink-soft); transition: all .15s;
+  }
+  .card-ops button:hover { border-color: var(--cinnabar); color: var(--cinnabar); }
+  .card-ops button.faved { background: var(--cinnabar); border-color: var(--cinnabar); color: #fff; }
+
+  .fav-item {
+    display: flex; align-items: center; gap: 14px; padding: 12px 6px;
+    border-bottom: 1px dashed var(--line); animation: fadeUp .3s ease both;
+  }
+  .fav-item:last-child { border-bottom: none; }
+  .fav-item .fav-name { font-family: "Songti SC", "STSong", serif; font-size: 20px; letter-spacing: 3px; min-width: 110px; }
+  .fav-item .fav-meaning { font-size: 12px; color: var(--ink-soft); flex: 1; line-height: 1.6; }
+  .fav-item button {
+    border: 1px solid var(--line); background: #fff; border-radius: 8px;
+    padding: 5px 12px; font-size: 12px; cursor: pointer; color: var(--ink-soft); white-space: nowrap;
+  }
+  .fav-item button:hover { border-color: var(--cinnabar); color: var(--cinnabar); }
+  .fav-item button.del:hover { border-color: #c0392b; color: #c0392b; }
+  .empty { color: var(--ink-soft); font-size: 14px; text-align: center; padding: 18px 0; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 40px; transform: translateX(-50%) translateY(20px);
+    background: rgba(45,42,38,.92); color: #fff; padding: 10px 22px; border-radius: 999px;
+    font-size: 14px; opacity: 0; pointer-events: none; transition: all .25s; z-index: 99;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  footer { text-align: center; color: var(--ink-soft); font-size: 12px; padding: 0 16px 40px; letter-spacing: 1px; }
+
+  /* ---- 账号系统 ---- */
+  .user-bar {
+    position: absolute; top: 22px; right: 22px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .user-bar .user-name {
+    font-size: 13px; color: var(--ink-soft); letter-spacing: 1px;
+    max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .btn-sm { padding: 7px 16px; font-size: 13px; letter-spacing: 2px; border-radius: 8px; box-shadow: none; }
+
+  .modal-mask {
+    position: fixed; inset: 0; background: rgba(45,42,38,.45);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100; padding: 16px; animation: fadeIn .2s ease;
+  }
+  .modal-mask[hidden] { display: none; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .modal {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 16px; box-shadow: 0 20px 60px rgba(80,60,30,.25);
+    width: 100%; max-width: 380px; padding: 30px 28px 24px;
+    position: relative; animation: pop .25s ease both;
+  }
+  @keyframes pop { from { opacity: 0; transform: translateY(16px) scale(.97); } to { opacity: 1; transform: none; } }
+  .modal-close {
+    position: absolute; top: 12px; right: 14px; border: none; background: none;
+    font-size: 22px; color: var(--ink-soft); cursor: pointer; line-height: 1; transition: color .15s;
+  }
+  .modal-close:hover { color: var(--cinnabar); }
+  .modal h3 {
+    font-family: "Songti SC", "STSong", serif; font-size: 22px;
+    text-align: center; letter-spacing: 6px; text-indent: 6px; margin-bottom: 18px;
+  }
+  .auth-tabs { display: flex; border-bottom: 1px solid var(--line); margin-bottom: 20px; }
+  .auth-tabs .tab {
+    flex: 1; background: none; border: none; padding: 10px 0; font-size: 15px;
+    color: var(--ink-soft); cursor: pointer; letter-spacing: 4px;
+    border-bottom: 2px solid transparent; transition: all .15s; font-family: inherit;
+  }
+  .auth-tabs .tab.active { color: var(--cinnabar); border-bottom-color: var(--cinnabar); font-weight: 600; }
+  .modal .field { margin-bottom: 14px; }
+  .modal input {
+    width: 100%; border: 1px solid var(--line); border-radius: 8px;
+    background: #fff; padding: 11px 14px; font-size: 15px; color: var(--ink);
+    outline: none; font-family: inherit; transition: border-color .2s, box-shadow .2s;
+  }
+  .modal input:focus { border-color: var(--cinnabar); box-shadow: 0 0 0 3px rgba(184,67,47,.1); }
+  .modal input.error { border-color: var(--cinnabar); animation: shake .3s; }
+  .auth-err { color: var(--cinnabar); font-size: 13px; min-height: 18px; margin-bottom: 6px; }
+  .btn-block { width: 100%; text-align: center; }
+  .auth-tip { text-align: center; font-size: 12px; color: var(--ink-soft); margin-top: 14px; line-height: 1.7; }
+
+  @media (max-width: 640px) {
+    header h1 { font-size: 30px; letter-spacing: 8px; text-indent: 8px; }
+    .user-bar { position: static; justify-content: center; margin-top: 14px; }
+    .form-grid { grid-template-columns: 1fr; }
+    .panel { padding: 20px 16px; }
+    .fav-item { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <span class="seal">妙名阁</span>
+  <h1>宝宝起名</h1>
+  <p>赐子千金，不如赐子好名 —— 愿每个名字都承载着美好的期许</p>
+  <div class="user-bar">
+    <span class="user-name" id="userName" hidden></span>
+    <button class="btn btn-ghost btn-sm" id="logoutBtn" hidden>退出登录</button>
+    <button class="btn btn-primary btn-sm" id="loginBtn">登录 / 注册</button>
+  </div>
+</header>
+
+<main>
+  <section class="panel">
+    <h2>起名条件</h2>
+    <div class="form-grid">
+      <div class="field">
+        <label>姓氏（必填，支持复姓）</label>
+        <input type="text" id="surname" maxlength="2" placeholder="如：林 / 欧阳" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>生成数量</label>
+        <select id="count">
+          <option value="6">6 个</option>
+          <option value="8" selected>8 个</option>
+          <option value="12">12 个</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>宝宝性别</label>
+        <div class="seg" id="genderSeg">
+          <label><input type="radio" name="gender" value="M"><span>男宝宝</span></label>
+          <label><input type="radio" name="gender" value="F" checked><span>女宝宝</span></label>
+          <label><input type="radio" name="gender" value="N"><span>不限</span></label>
+        </div>
+      </div>
+      <div class="field">
+        <label>名字字数</label>
+        <div class="seg" id="lenSeg">
+          <label><input type="radio" name="len" value="1"><span>单字名</span></label>
+          <label><input type="radio" name="len" value="2" checked><span>双字名</span></label>
+          <label><input type="radio" name="len" value="0"><span>都可以</span></label>
+        </div>
+      </div>
+      <div class="field full">
+        <label>风格偏好（可多选，不选则综合推荐）</label>
+        <div class="seg" id="styleSeg">
+          <label><input type="checkbox" name="style" value="poem"><span>诗词典故</span></label>
+          <label><input type="checkbox" name="style" value="sun"><span>阳光开朗</span></label>
+          <label><input type="checkbox" name="style" value="gentle"><span>温婉雅致</span></label>
+          <label><input type="checkbox" name="style" value="ambition"><span>志向远大</span></label>
+          <label><input type="checkbox" name="style" value="nature"><span>自然山水</span></label>
+          <label><input type="checkbox" name="style" value="simple"><span>简单好记</span></label>
+        </div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-primary" id="generateBtn">生成名字</button>
+      <span id="errTip"></span>
+    </div>
+  </section>
+
+  <section class="panel" id="resultsPanel" hidden>
+    <h2>推荐名字 <span class="hint" id="resultHint"></span></h2>
+    <div class="cards" id="cards"></div>
+    <div class="actions" style="margin-top:22px;">
+      <button class="btn btn-ghost" id="againBtn">换一批</button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>我的收藏 <span class="hint" id="favCount"></span></h2>
+    <div id="favList"></div>
+  </section>
+</main>
+
+<!-- 登录 / 注册弹窗 -->
+<div class="modal-mask" id="authModal" hidden>
+  <div class="modal">
+    <button class="modal-close" id="authClose" type="button" aria-label="关闭">×</button>
+    <h3>妙名阁</h3>
+    <div class="auth-tabs">
+      <button class="tab active" type="button" data-tab="login">登 录</button>
+      <button class="tab" type="button" data-tab="register">注 册</button>
+    </div>
+    <form id="authForm" novalidate>
+      <div class="field">
+        <label for="authUser">用户名</label>
+        <input type="text" id="authUser" maxlength="20" placeholder="2-20 位中英文、数字或下划线" autocomplete="username">
+      </div>
+      <div class="field">
+        <label for="authPass">密码</label>
+        <input type="password" id="authPass" maxlength="64" placeholder="至少 6 位" autocomplete="current-password">
+      </div>
+      <div class="field" id="confirmField" hidden>
+        <label for="authPass2">确认密码</label>
+        <input type="password" id="authPass2" maxlength="64" placeholder="再次输入密码" autocomplete="new-password">
+      </div>
+      <div class="auth-err" id="authErr"></div>
+      <button class="btn btn-primary btn-block" id="authSubmit" type="submit">登 录</button>
+      <div class="auth-tip">账号与收藏保存在本机浏览器中<br>请勿使用重要密码</div>
+    </form>
+  </div>
+</div>
+
+<footer>名字由本地字库随机组合生成，仅供灵感参考，请结合家庭喜好审慎选择。</footer>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+
+const STYLES = { poem: "诗词典故", sun: "阳光开朗", gentle: "温婉雅致", ambition: "志向远大", nature: "自然山水", simple: "简单好记" };
+
+// g: M 男 / F 女 / N 中性；t: 风格标签
+const CHARS = [
+  {c:"宇",p:"yǔ",m:"气宇轩昂，胸怀广阔",g:"M",t:["ambition"]},
+  {c:"轩",p:"xuān",m:"气度不凡，昂扬向上",g:"M",t:["ambition","sun"]},
+  {c:"泽",p:"zé",m:"润泽万物，恩泽深厚",g:"M",t:["nature","gentle"]},
+  {c:"晨",p:"chén",m:"清晨朝阳，充满希望",g:"M",t:["sun","simple"]},
+  {c:"昊",p:"hào",m:"天空辽阔，志向高远",g:"M",t:["ambition","nature"]},
+  {c:"然",p:"rán",m:"坦然自若，光明磊落",g:"M",t:["simple","poem"]},
+  {c:"博",p:"bó",m:"博学多才，见识广博",g:"M",t:["ambition","simple"]},
+  {c:"文",p:"wén",m:"文采斐然，温文尔雅",g:"M",t:["poem","gentle"]},
+  {c:"哲",p:"zhé",m:"聪慧明理，富有智慧",g:"M",t:["ambition","poem"]},
+  {c:"睿",p:"ruì",m:"睿智通达，见识深远",g:"M",t:["ambition"]},
+  {c:"阳",p:"yáng",m:"阳光开朗，积极向上",g:"M",t:["sun","simple"]},
+  {c:"凯",p:"kǎi",m:"凯旋而归，和乐昂扬",g:"M",t:["sun","ambition"]},
+  {c:"峰",p:"fēng",m:"山峰高耸，卓尔不群",g:"M",t:["nature","ambition"]},
+  {c:"林",p:"lín",m:"林木葱郁，生生不息",g:"M",t:["nature","simple"]},
+  {c:"川",p:"chuān",m:"河川奔流，胸怀开阔",g:"M",t:["nature","ambition"]},
+  {c:"岳",p:"yuè",m:"高山仰止，沉稳厚重",g:"M",t:["nature","ambition"]},
+  {c:"江",p:"jiāng",m:"江流不息，气魄宏大",g:"M",t:["nature"]},
+  {c:"海",p:"hǎi",m:"海纳百川，包容宽广",g:"M",t:["nature","ambition"]},
+  {c:"帆",p:"fān",m:"扬帆远航，一往无前",g:"M",t:["nature","ambition"]},
+  {c:"航",p:"háng",m:"启航远行，志在四方",g:"M",t:["ambition","sun"]},
+  {c:"铭",p:"míng",m:"铭记于心，志向坚定",g:"M",t:["ambition","poem"]},
+  {c:"锐",p:"ruì",m:"锐意进取，勇往直前",g:"M",t:["ambition"]},
+  {c:"恒",p:"héng",m:"持之以恒，意志坚定",g:"M",t:["ambition","simple"]},
+  {c:"毅",p:"yì",m:"坚毅果敢，百折不挠",g:"M",t:["ambition"]},
+  {c:"诚",p:"chéng",m:"真诚待人，诚实守信",g:"M",t:["gentle","simple"]},
+  {c:"谦",p:"qiān",m:"谦谦君子，温润如玉",g:"M",t:["gentle","poem"]},
+  {c:"承",p:"chéng",m:"承前启后，勇于担当",g:"M",t:["ambition"]},
+  {c:"启",p:"qǐ",m:"开启智慧，前程似锦",g:"M",t:["ambition","sun"]},
+  {c:"远",p:"yuǎn",m:"志向远大，行稳致远",g:"M",t:["ambition","poem"]},
+  {c:"志",p:"zhì",m:"志存高远，初心不改",g:"M",t:["ambition","simple"]},
+  {c:"宁",p:"níng",m:"宁静致远，安宁祥和",g:"M",t:["gentle","simple"]},
+  {c:"安",p:"ān",m:"平安顺遂，从容安定",g:"M",t:["simple","gentle"]},
+  {c:"泰",p:"tài",m:"安泰稳重，否极泰来",g:"M",t:["ambition","poem"]},
+  {c:"霖",p:"lín",m:"甘霖润泽，福泽绵长",g:"M",t:["nature","poem"]},
+  {c:"瑞",p:"ruì",m:"祥瑞吉利，前程美好",g:"M",t:["poem","simple"]},
+  {c:"翔",p:"xiáng",m:"翱翔天际，自由高远",g:"M",t:["sun","ambition"]},
+  {c:"骏",p:"jùn",m:"骏马奔腾，才华出众",g:"M",t:["ambition","nature"]},
+  {c:"宸",p:"chén",m:"宸极之光，尊贵大气",g:"M",t:["ambition","poem"]},
+  {c:"珩",p:"héng",m:"佩玉相击，品行高洁",g:"M",t:["poem","gentle"]},
+  {c:"煜",p:"yù",m:"光耀明亮，前程光明",g:"M",t:["sun","poem"]},
+  {c:"熠",p:"yì",m:"光彩闪耀，熠熠生辉",g:"M",t:["sun","poem"]},
+  {c:"朗",p:"lǎng",m:"开朗明亮，豁达爽快",g:"M",t:["sun","simple"]},
+  {c:"峥",p:"zhēng",m:"峥嵘不凡，出类拔萃",g:"M",t:["ambition","poem"]},
+  {c:"彦",p:"yàn",m:"才德出众的俊杰",g:"M",t:["poem","ambition"]},
+  {c:"修",p:"xiū",m:"修身养德，严于律己",g:"M",t:["poem","gentle"]},
+  {c:"齐",p:"qí",m:"见贤思齐，向上向善",g:"M",t:["poem","simple"]},
+  {c:"衡",p:"héng",m:"平衡公正，持重有度",g:"M",t:["ambition","nature"]},
+  {c:"嵩",p:"sōng",m:"嵩山高峻，巍峨大气",g:"M",t:["nature","ambition"]},
+  {c:"煦",p:"xù",m:"和煦温暖，待人宽厚",g:"M",t:["gentle","sun"]},
+
+  {c:"婉",p:"wǎn",m:"温婉柔美，娴静美好",g:"F",t:["gentle","poem"]},
+  {c:"婷",p:"tíng",m:"亭亭玉立，姿态美好",g:"F",t:["gentle","simple"]},
+  {c:"雅",p:"yǎ",m:"优雅大方，气质不俗",g:"F",t:["gentle","simple"]},
+  {c:"静",p:"jìng",m:"安静从容，岁月静好",g:"F",t:["gentle","simple"]},
+  {c:"妍",p:"yán",m:"美丽聪慧，百花争妍",g:"F",t:["gentle","poem"]},
+  {c:"馨",p:"xīn",m:"温馨美好，德艺双馨",g:"F",t:["gentle","poem"]},
+  {c:"琳",p:"lín",m:"美玉琳琅，珍贵美好",g:"F",t:["gentle","nature"]},
+  {c:"瑶",p:"yáo",m:"美玉瑶池，洁白美好",g:"F",t:["poem","gentle"]},
+  {c:"璐",p:"lù",m:"美玉之名，温润珍贵",g:"F",t:["gentle","poem"]},
+  {c:"玥",p:"yuè",m:"神珠之名，祥瑞珍贵",g:"F",t:["poem","gentle"]},
+  {c:"汐",p:"xī",m:"潮汐有信，灵动温柔",g:"F",t:["nature","poem"]},
+  {c:"沁",p:"qìn",m:"沁人心脾，清新怡人",g:"F",t:["nature","gentle"]},
+  {c:"芷",p:"zhǐ",m:"岸芷汀兰，品行高洁",g:"F",t:["nature","poem"]},
+  {c:"薇",p:"wēi",m:"采薇而歌，清雅坚韧",g:"F",t:["nature","poem"]},
+  {c:"蕊",p:"ruǐ",m:"花蕊娇嫩，生机盎然",g:"F",t:["nature","simple"]},
+  {c:"菲",p:"fēi",m:"芳菲馥郁，美好出众",g:"F",t:["nature","poem"]},
+  {c:"岚",p:"lán",m:"山间雾气，朦胧雅致",g:"F",t:["nature","gentle"]},
+  {c:"晴",p:"qíng",m:"晴朗明媚，开朗乐观",g:"F",t:["sun","simple"]},
+  {c:"悦",p:"yuè",m:"喜悦安然，心生欢喜",g:"F",t:["sun","simple"]},
+  {c:"欣",p:"xīn",m:"欣欣向荣，生机盎然",g:"F",t:["sun","simple"]},
+  {c:"怡",p:"yí",m:"心旷神怡，和悦安然",g:"F",t:["gentle","simple"]},
+  {c:"彤",p:"tóng",m:"红色朝阳，热情明快",g:"F",t:["sun","poem"]},
+  {c:"萱",p:"xuān",m:"忘忧之草，快乐无忧",g:"F",t:["nature","poem"]},
+  {c:"蓉",p:"róng",m:"出水芙蓉，清雅美丽",g:"F",t:["nature","poem"]},
+  {c:"雪",p:"xuě",m:"洁白纯净，冰雪聪明",g:"F",t:["nature","simple"]},
+  {c:"月",p:"yuè",m:"皎洁月光，温柔静美",g:"F",t:["nature","poem"]},
+  {c:"星",p:"xīng",m:"星光璀璨，明亮闪耀",g:"F",t:["sun","poem"]},
+  {c:"云",p:"yún",m:"云卷云舒，自在从容",g:"F",t:["nature","simple"]},
+  {c:"溪",p:"xī",m:"溪水潺潺，清澈灵动",g:"F",t:["nature","gentle"]},
+  {c:"澜",p:"lán",m:"波澜不惊，气度从容",g:"F",t:["nature","ambition"]},
+  {c:"洛",p:"luò",m:"洛水之滨，灵秀大气",g:"F",t:["nature","poem"]},
+  {c:"舒",p:"shū",m:"舒展从容，安然自在",g:"F",t:["gentle","simple"]},
+  {c:"锦",p:"jǐn",m:"前程似锦，华美灿烂",g:"F",t:["poem","ambition"]},
+  {c:"瑟",p:"sè",m:"琴瑟和鸣，古雅端庄",g:"F",t:["poem","gentle"]},
+  {c:"笙",p:"shēng",m:"笙歌悠扬，和乐美好",g:"F",t:["poem","nature"]},
+  {c:"韵",p:"yùn",m:"韵味悠长，才情雅致",g:"F",t:["poem","gentle"]},
+  {c:"诗",p:"shī",m:"诗意盎然，文采出众",g:"F",t:["poem","simple"]},
+  {c:"书",p:"shū",m:"书香门第，知书达理",g:"F",t:["poem","gentle"]},
+  {c:"慧",p:"huì",m:"聪慧灵敏，秀外慧中",g:"F",t:["simple","sun"]},
+  {c:"敏",p:"mǐn",m:"思维敏捷，聪颖过人",g:"F",t:["simple","ambition"]},
+  {c:"灵",p:"líng",m:"灵动聪慧，钟灵毓秀",g:"F",t:["sun","poem"]},
+  {c:"梦",p:"mèng",m:"心怀梦想，浪漫美好",g:"F",t:["poem","simple"]},
+  {c:"曦",p:"xī",m:"晨曦微露，光明希望",g:"F",t:["sun","poem"]},
+  {c:"姝",p:"shū",m:"静女其姝，美好温婉",g:"F",t:["poem","gentle"]},
+  {c:"娴",p:"xián",m:"娴静文雅，举止端庄",g:"F",t:["gentle","poem"]},
+  {c:"霓",p:"ní",m:"虹霓绚烂，光彩照人",g:"F",t:["nature","poem"]},
+  {c:"棠",p:"táng",m:"海棠依旧，明艳动人",g:"F",t:["nature","poem"]},
+  {c:"鸢",p:"yuān",m:"纸鸢凌云，自由灵动",g:"F",t:["nature","poem"]},
+
+  {c:"墨",p:"mò",m:"翰墨书香，文采内蕴",g:"N",t:["poem","gentle"]},
+  {c:"言",p:"yán",m:"言辞有度，一诺千金",g:"N",t:["simple","poem"]},
+  {c:"诺",p:"nuò",m:"一诺千金，信守承诺",g:"N",t:["simple","ambition"]},
+  {c:"一",p:"yī",m:"纯粹专一，万物之始",g:"N",t:["simple","poem"]},
+  {c:"之",p:"zhī",m:"虚词入名，古雅灵动",g:"N",t:["poem","simple"]},
+  {c:"亦",p:"yì",m:"亦复如是，从容淡然",g:"N",t:["poem","simple"]},
+  {c:"予",p:"yǔ",m:"给予馈赠，心怀慷慨",g:"N",t:["gentle","simple"]},
+  {c:"嘉",p:"jiā",m:"美好嘉许，德才兼备",g:"N",t:["simple","poem"]},
+  {c:"乐",p:"lè",m:"快乐豁达，知足常乐",g:"N",t:["sun","simple"]},
+  {c:"希",p:"xī",m:"希望满怀，未来可期",g:"N",t:["sun","simple"]},
+  {c:"南",p:"nán",m:"南风温和，诗意方向",g:"N",t:["nature","poem"]},
+  {c:"青",p:"qīng",m:"青出于蓝，生机盎然",g:"N",t:["nature","simple"]},
+  {c:"蓝",p:"lán",m:"海阔天空，清澈纯净",g:"N",t:["nature","simple"]},
+  {c:"禾",p:"hé",m:"禾苗茁壮，丰收安康",g:"N",t:["nature","simple"]},
+  {c:"时",p:"shí",m:"珍惜时光，应时而动",g:"N",t:["simple","poem"]},
+  {c:"岁",p:"suì",m:"岁月静好，温润绵长",g:"N",t:["poem","nature"]},
+  {c:"澄",p:"chéng",m:"澄澈清明，心地纯净",g:"N",t:["nature","gentle"]},
+  {c:"清",p:"qīng",m:"清正明朗，清澈通透",g:"N",t:["gentle","nature"]},
+  {c:"素",p:"sù",m:"朴素本真，安之若素",g:"N",t:["gentle","poem"]},
+  {c:"简",p:"jiǎn",m:"简单纯粹，大道至简",g:"N",t:["simple","poem"]},
+  {c:"初",p:"chū",m:"不忘初心，美好如初",g:"N",t:["poem","simple"]},
+  {c:"念",p:"niàn",m:"心怀感念，温情常存",g:"N",t:["gentle","poem"]},
+  {c:"思",p:"sī",m:"善于思考，心思细腻",g:"N",t:["simple","poem"]},
+  {c:"忆",p:"yì",m:"珍藏记忆，温柔念旧",g:"N",t:["poem","gentle"]},
+  {c:"晚",p:"wǎn",m:"晚风温柔，诗意悠然",g:"N",t:["poem","nature"]},
+  {c:"照",p:"zhào",m:"光照前路，明朗坦荡",g:"N",t:["sun","poem"]},
+  {c:"知",p:"zhī",m:"知书达理，格物致知",g:"N",t:["poem","simple"]},
+  {c:"晏",p:"yàn",m:"天朗气清，安然和乐",g:"N",t:["poem","sun"]},
+  {c:"白",p:"bái",m:"洁白坦荡，纯粹明亮",g:"N",t:["simple","nature"]},
+  {c:"沐",p:"mù",m:"如沐春风，润泽美好",g:"N",t:["nature","gentle"]},
+  {c:"岑",p:"cén",m:"小而高的山，清幽雅致",g:"N",t:["nature","poem"]},
+  {c:"乔",p:"qiáo",m:"乔木参天，挺拔向上",g:"N",t:["nature","sun"]},
+  {c:"枫",p:"fēng",m:"枫林尽染，明艳热烈",g:"N",t:["nature","poem"]},
+  {c:"桐",p:"tóng",m:"梧桐栖凤，高洁祥瑞",g:"N",t:["nature","poem"]},
+  {c:"可",p:"kě",m:"可亲可爱，万事可期",g:"N",t:["simple","sun"]},
+  {c:"攸",p:"yōu",m:"水流悠然，安然自得",g:"N",t:["poem"]},
+  {c:"翊",p:"yì",m:"翊赞辅佐，展翅欲飞",g:"N",t:["poem","ambition"]},
+  {c:"昀",p:"yún",m:"日光温暖，明亮和煦",g:"N",t:["sun","poem"]},
+  {c:"祺",p:"qí",m:"吉祥安泰，福运绵长",g:"N",t:["poem","simple"]},
+  {c:"昭",p:"zhāo",m:"昭如日月，光明磊落",g:"N",t:["ambition","poem"]}
+];
+
+const $ = (id) => document.getElementById(id);
+const surnameInput = $("surname");
+const cardsEl = $("cards");
+const favListEl = $("favList");
+
+/* ---------- 账号系统（基于浏览器本地存储的演示实现） ---------- */
+const USERS_KEY = "mmg-users";
+const SESSION_KEY = "mmg-session";
+
+function loadUsers() { try { return JSON.parse(localStorage.getItem(USERS_KEY) || "{}"); } catch { return {}; } }
+function saveUsers(users) { localStorage.setItem(USERS_KEY, JSON.stringify(users)); }
+function currentUser() { return localStorage.getItem(SESSION_KEY) || ""; }
+
+async function hashPass(pw, salt) {
+  const text = `${salt}::${pw}`;
+  if (window.crypto && crypto.subtle) {
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
+  }
+  // 非安全上下文（如 file:// 直接打开）时的降级哈希
+  let h1 = 0x811c9dc5, h2 = 0x01000193;
+  for (let i = 0; i < text.length; i++) {
+    h1 = (h1 ^ text.charCodeAt(i)) >>> 0;
+    h1 = Math.imul(h1, 16777619) >>> 0;
+    h2 = (h2 + text.charCodeAt(i)) >>> 0;
+    h2 = Math.imul(h2, 2654435761) >>> 0;
+  }
+  return `${h1.toString(16)}${h2.toString(16)}${text.length.toString(16)}`;
+}
+function randSalt() {
+  const arr = new Uint8Array(8);
+  crypto.getRandomValues(arr);
+  return [...arr].map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+const authModal = $("authModal");
+let authMode = "login";
+
+function openAuth(tab) {
+  authMode = tab || "login";
+  $("authErr").textContent = "";
+  [...authModal.querySelectorAll(".tab")].forEach(t => t.classList.toggle("active", t.dataset.tab === authMode));
+  $("confirmField").hidden = authMode !== "register";
+  $("authSubmit").textContent = authMode === "register" ? "注 册" : "登 录";
+  $("authUser").value = $("authPass").value = $("authPass2").value = "";
+  authModal.hidden = false;
+  setTimeout(() => $("authUser").focus(), 60);
+}
+function closeAuth() { authModal.hidden = true; }
+
+async function submitAuth(e) {
+  e.preventDefault();
+  const err = $("authErr");
+  err.textContent = "";
+  const userEl = $("authUser"), passEl = $("authPass");
+  userEl.classList.remove("error"); passEl.classList.remove("error");
+  $("authPass2").classList.remove("error");
+  const username = userEl.value.trim();
+  const password = passEl.value;
+  if (!/^[\w\u4e00-\u9fa5]{2,20}$/.test(username)) {
+    err.textContent = "用户名需为 2-20 位中英文、数字或下划线";
+    userEl.classList.add("error"); return;
+  }
+  if (password.length < 6) {
+    err.textContent = "密码至少 6 位";
+    passEl.classList.add("error"); return;
+  }
+  const users = loadUsers();
+  if (authMode === "register") {
+    const pass2 = $("authPass2").value;
+    if (password !== pass2) {
+      err.textContent = "两次输入的密码不一致";
+      $("authPass2").classList.add("error"); return;
+    }
+    if (users[username]) {
+      err.textContent = "该用户名已被注册，请直接登录";
+      userEl.classList.add("error"); return;
+    }
+    const salt = randSalt();
+    users[username] = { salt, hash: await hashPass(password, salt), createdAt: Date.now() };
+    saveUsers(users);
+    localStorage.setItem(SESSION_KEY, username);
+    toast(`注册成功，欢迎您，${username}`);
+  } else {
+    const rec = users[username];
+    if (!rec || (await hashPass(password, rec.salt)) !== rec.hash) {
+      err.textContent = "用户名或密码不正确";
+      passEl.classList.add("error"); return;
+    }
+    localStorage.setItem(SESSION_KEY, username);
+    toast(`欢迎回来，${username}`);
+  }
+  closeAuth();
+  applyAuthUI();
+  loadFavs();
+}
+
+function applyAuthUI() {
+  const u = currentUser();
+  $("userName").textContent = u;
+  $("userName").hidden = !u;
+  $("logoutBtn").hidden = !u;
+  $("loginBtn").hidden = !!u;
+}
+
+function logout() {
+  localStorage.removeItem(SESSION_KEY);
+  toast("已退出登录");
+  applyAuthUI();
+  loadFavs();
+}
+
+/* ---------- 收藏（按账号隔离存储） ---------- */
+let favorites = [];
+function favKey() { const u = currentUser(); return u ? `mmg-favs-${u}` : ""; }
+function loadFavs() {
+  favorites = [];
+  const key = favKey();
+  if (key) { try { favorites = JSON.parse(localStorage.getItem(key) || "[]"); } catch { favorites = []; } }
+  renderFavs();
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function poolFor(gender) {
+  if (gender === "N") return CHARS;
+  return CHARS.filter(c => c.g === gender || c.g === "N");
+}
+
+function pickGiven(pool, len, styles, surnameChars) {
+  const preferred = styles.length ? pool.filter(c => c.t.some(s => styles.includes(s))) : pool;
+  const source = preferred.length >= len ? preferred : pool;
+  const banned = new Set(surnameChars);
+  const picked = [];
+  for (const c of shuffle([...source])) {
+    if (banned.has(c.c)) continue;
+    picked.push(c);
+    banned.add(c.c);
+    if (picked.length === len) return picked;
+  }
+  return null;
+}
+
+function generate() {
+  const surname = surnameInput.value.trim();
+  const tip = $("errTip");
+  surnameInput.classList.remove("error");
+  tip.textContent = "";
+  if (!surname) {
+    tip.textContent = "请先输入姓氏";
+    surnameInput.classList.add("error");
+    surnameInput.focus();
+    return;
+  }
+  const gender = document.querySelector('input[name="gender"]:checked').value;
+  const lenChoice = Number(document.querySelector('input[name="len"]:checked').value);
+  const styles = [...document.querySelectorAll('input[name="style"]:checked')].map(i => i.value);
+  const count = Number($("count").value);
+  const surnameChars = [...surname];
+  const pool = poolFor(gender);
+  const seen = new Set();
+  const results = [];
+  let guard = 0;
+  while (results.length < count && guard++ < 600) {
+    const len = lenChoice === 0 ? (Math.random() < 0.5 ? 1 : 2) : lenChoice;
+    const given = pickGiven(pool, len, styles, surnameChars);
+    if (!given) break;
+    const name = surname + given.map(c => c.c).join("");
+    if (seen.has(name)) continue;
+    seen.add(name);
+    results.push({ name, given });
+  }
+  renderResults(results, surname);
+}
+
+function isFaved(name) { return favorites.some(f => f.name === name); }
+
+function meaningHtml(given) {
+  return given.map(c => `<b>${c.c}</b> ${c.m}`).join("；");
+}
+
+function renderResults(results) {
+  $("resultsPanel").hidden = results.length === 0;
+  $("resultHint").textContent = results.length ? `共 ${results.length} 个，点击「收藏」留存心仪之选` : "";
+  cardsEl.innerHTML = "";
+  results.forEach((r, i) => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.style.animationDelay = (i * 0.05) + "s";
+    const pinyin = r.given.map(c => c.p).join(" ");
+    const faved = isFaved(r.name);
+    const tags = [...new Set(r.given.flatMap(c => c.t))].slice(0, 3)
+      .map(s => `<span class="tag">${STYLES[s]}</span>`).join("");
+    card.innerHTML = `
+      <div class="name">${r.name}</div>
+      <div class="pinyin">${pinyin}</div>
+      <div class="meaning">${meaningHtml(r.given)}</div>
+      <div class="tags">${tags}</div>
+      <div class="card-ops">
+        <button data-act="fav">${faved ? "已收藏 ♥" : "收藏 ♡"}</button>
+        <button data-act="copy">复制</button>
+      </div>`;
+    card.querySelector('[data-act="fav"]').classList.toggle("faved", faved);
+    card.querySelector('[data-act="fav"]').addEventListener("click", () => toggleFav(r, card.querySelector('[data-act="fav"]')));
+    card.querySelector('[data-act="copy"]').addEventListener("click", () => copyText(r.name));
+    cardsEl.appendChild(card);
+  });
+}
+
+function toggleFav(r, btn) {
+  if (!currentUser()) { openAuth("login"); toast("请先登录后再收藏"); return; }
+  if (isFaved(r.name)) {
+    favorites = favorites.filter(f => f.name !== r.name);
+    if (btn) { btn.textContent = "收藏 ♡"; btn.classList.remove("faved"); }
+    toast(`已取消收藏「${r.name}」`);
+  } else {
+    favorites.unshift({ name: r.name, pinyin: r.given.map(c => c.p).join(" "), meaning: meaningHtml(r.given) });
+    if (btn) { btn.textContent = "已收藏 ♥"; btn.classList.add("faved"); }
+    toast(`已收藏「${r.name}」`);
+  }
+  localStorage.setItem(favKey(), JSON.stringify(favorites));
+  renderFavs();
+}
+
+function renderFavs() {
+  $("favCount").textContent = favorites.length ? `${favorites.length} 个` : "";
+  if (!currentUser()) {
+    favListEl.innerHTML = `<div class="empty">登录账号后即可收藏心仪的名字，收藏将保存在你的账号名下。</div>`;
+    return;
+  }
+  if (!favorites.length) {
+    favListEl.innerHTML = `<div class="empty">还没有收藏，生成名字后点击「收藏」即可留存。</div>`;
+    return;
+  }
+  favListEl.innerHTML = "";
+  favorites.forEach(f => {
+    const row = document.createElement("div");
+    row.className = "fav-item";
+    row.innerHTML = `
+      <span class="fav-name">${f.name}</span>
+      <span class="fav-meaning">${f.meaning}</span>
+      <button data-act="copy">复制</button>
+      <button data-act="del" class="del">删除</button>`;
+    row.querySelector('[data-act="copy"]').addEventListener("click", () => copyText(f.name));
+    row.querySelector('[data-act="del"]').addEventListener("click", () => {
+      favorites = favorites.filter(x => x.name !== f.name);
+      localStorage.setItem(favKey(), JSON.stringify(favorites));
+      renderFavs();
+      toast(`已删除「${f.name}」`);
+    });
+    favListEl.appendChild(row);
+  });
+}
+
+function copyText(text) {
+  const done = () => toast(`已复制「${text}」`);
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+  } else {
+    fallbackCopy(text, done);
+  }
+}
+
+function fallbackCopy(text, done) {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand("copy"); done(); } catch { toast("复制失败，请手动复制"); }
+  ta.remove();
+}
+
+let toastTimer;
+function toast(msg) {
+  const el = $("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 1800);
+}
+
+$("generateBtn").addEventListener("click", generate);
+$("againBtn").addEventListener("click", generate);
+surnameInput.addEventListener("keydown", e => { if (e.key === "Enter") generate(); });
+
+/* 账号系统初始化 */
+$("loginBtn").addEventListener("click", () => openAuth("login"));
+$("logoutBtn").addEventListener("click", logout);
+$("authClose").addEventListener("click", closeAuth);
+authModal.addEventListener("click", e => { if (e.target === authModal) closeAuth(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !authModal.hidden) closeAuth(); });
+authModal.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => openAuth(t.dataset.tab)));
+$("authForm").addEventListener("submit", submitAuth);
+
+applyAuthUI();
+loadFavs();
+</script>
+</body>
+</html>
